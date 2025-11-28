@@ -28,6 +28,11 @@ static int apdu_interface_connect(struct euicc_ctx *ctx) {
         return false;
     }
 
+    at_emit_command(userdata, "ATE0");
+    if (at_expect(userdata, NULL, NULL) != 0) {
+        fprintf(stderr, "Device not responding to ATE0 command\n");
+    }
+
     static const char *commands[] = {"AT+CCHO", "AT+CCHC", "AT+CGLA", NULL};
     for (int index = 0; commands[index] != NULL; index++) {
         at_emit_command(userdata, "%s=?", commands[index]);
@@ -35,6 +40,13 @@ static int apdu_interface_connect(struct euicc_ctx *ctx) {
             continue;
         fprintf(stderr, "Device missing %s support\n", commands[index]);
         return false;
+    }
+
+    static const char *logic_channels[] = {"257", "1", NULL};
+    for (int lc = 0; logic_channels[lc] != NULL; lc++) {
+        at_emit_command(userdata, "AT+CCHC=%s", logic_channels[lc]);
+        if (at_expect(userdata, NULL, NULL) == 0)
+            continue;
     }
 
     return true;
@@ -63,7 +75,7 @@ static int apdu_interface_transmit(struct euicc_ctx *ctx, uint8_t **rx, uint32_t
     encoded = malloc(tx_len * 2 + 1);
     euicc_hexutil_bin2hex(encoded, tx_len * 2 + 1, tx, tx_len);
 
-    at_emit_command(userdata, "AT+CGLA=%s,%u,\"%s\"", logic_channel, tx_len * 2, encoded);
+    at_emit_command(userdata, "AT+CGLA=%s,%u,\"%s00\"", logic_channel, tx_len * 2 + 2, encoded);
     if (at_expect(userdata, &response, "+CGLA: ") != 0 || response == NULL)
         goto err;
 
