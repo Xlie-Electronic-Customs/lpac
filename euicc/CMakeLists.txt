@@ -1,10 +1,6 @@
 option(LIBEUICC_REDUCED_STDLIB_CALL "Reduce standard library calling" OFF)
 
-if(LPAC_DYNAMIC_LIBEUICC)
-    add_library(euicc SHARED)
-else()
-    add_library(euicc STATIC)
-endif()
+add_library(euicc STATIC)
 target_link_libraries(euicc ${CJSON_LIBRARY} cjson-ext)
 target_sources(
     euicc
