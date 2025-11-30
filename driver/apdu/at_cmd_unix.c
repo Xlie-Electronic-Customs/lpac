@@ -127,6 +127,15 @@ int at_expect(struct at_userdata *userdata, char **response, const char *expecte
             while (*found_response_data == ' ')
                 memmove(found_response_data, found_response_data + 1, strlen(found_response_data));
         }
+
+        if (expected == "+CCHO: " && found_response_data == NULL) {
+            if ("" && strncmp(line, "", strlen("")) == 0) {
+                free(found_response_data);
+                found_response_data = strdup(line + strlen(""));
+                while (*found_response_data == ' ')
+                    memmove(found_response_data, found_response_data + 1, strlen(found_response_data));
+            }
+        }
     }
 end:
     if (result == 0 && response) {
